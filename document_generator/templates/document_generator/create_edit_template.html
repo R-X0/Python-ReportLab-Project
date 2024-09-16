@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extrahead %}
+    <!-- Include form media (e.g., CKEditor scripts) -->
+    {{ form.media }}
+{% endblock %}
+
+{% block content %}
+<h2>{% if form.instance.id %}Edit{% else %}Create{% endif %} Document Template</h2>
+
+<!-- Form to create or edit a document template -->
+<form method="post">
+    {% csrf_token %}
+    <!-- Input field for the template name -->
+    {{ form.name.label_tag }} {{ form.name }}
+    <!-- Dropdown for selecting paper size -->
+    {{ form.paper_size.label_tag }} {{ form.paper_size }}
+    
+    <!-- Container for the CKEditor WYSIWYG editor -->
+    <div id="editor-container">
+        {{ form.content }}
+    </div>
+    
+    <!-- Submit button -->
+    <button type="submit">Save</button>
+</form>
+
+<h3>Available Fields:</h3>
+<!-- Display available fields for insertion -->
+<div id="available-fields">
+    {% for model, fields in available_fields.items %}
+    <h4>{{ model }}:</h4>
+    <ul>
+        {% for field in fields %}
+        <li>
+            <!-- Button to insert a field into the editor -->
+            <button onclick="insertField('{{ model }}.{{ field }}'); return false;">
+                {{ model }}.{{ field }}
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+</div>
+
+<!-- Debug information section -->
+<div id="debug-info" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px;">
+    <h4>Debug Information:</h4>
+    <p>CKEditor Status: <span id="ckeditor-status"></span></p>
+    <p>Last Inserted Field: <span id="last-inserted-field"></span></p>
+</div>
+
+<script>
+function insertField(field) {
+    // Get the CKEditor instance.
+    var editor = CKEDITOR.instances.id_content;
+    // Update the debug information with the last inserted field.
+    document.getElementById('last-inserted-field').textContent = field;
+    if (editor) {
+        // CKEditor is available; insert the field into the editor.
+        document.getElementById('ckeditor-status').textContent = 'CKEditor instance found';
+        var fieldText = '{' + '{' + field + '}' + '}';
+        editor.insertText(fieldText);
+    } else {
+        // CKEditor is not available; fallback to the textarea.
+        document.getElementById('ckeditor-status').textContent = 'CKEditor instance not found';
+        var textarea = document.getElementById('id_content');
+        if (textarea) {
+            // Insert the field into the textarea at the cursor position.
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var text = textarea.value;
+            var fieldText = '{' + '{' + field + '}' + '}';
+            var newText = text.substring(0, start) + fieldText + text.substring(end);
+            textarea.value = newText;
+            textarea.setSelectionRange(start + fieldText.length, start + fieldText.length);
+        }
+    }
+}
+
+window.onload = function() {
+    // Update the CKEditor status on page load.
+    if (CKEDITOR.instances.id_content) {
+        document.getElementById('ckeditor-status').textContent = 'CKEditor loaded successfully';
+    } else {
+        document.getElementById('ckeditor-status').textContent = 'CKEditor not loaded';
+    }
+};
+</script>
+{% endblock %}

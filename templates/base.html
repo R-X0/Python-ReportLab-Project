@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Document Generator</title>
+    <!-- Include form media (e.g., CKEditor scripts) -->
+    {{ form.media }}
+</head>
+<body>
+    <nav>
+        <!-- Navigation link to the templates list -->
+        <a href="{% url 'list_templates' %}">Templates</a>
+    </nav>
+    <!-- Block for page-specific content -->
+    {% block content %}
+    {% endblock %}
+</body>
+</html>
